@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Editor, EditorState, ContentState, RichUtils} from 'draft-js';
+import {Editor, RichUtils} from 'draft-js';
 
 import './Draft.css';
 
@@ -14,12 +14,12 @@ class Draft extends Component {
   constructor(props) {
     super(props);
     
-    this.state = {
-      editorState: EditorState.createWithContent(ContentState.createFromText(props.note.text))
-    };
+    //this.state = {
+    //  editorState: EditorState.createWithContent(ContentState.createFromText(props.note.text))
+    //};
 
     this.focus = () => this.refs.editor.focus();
-    this.onChange = (editorState) => this.setState({editorState});
+    //this.onChange = (editorState) => this.setState({editorState});
 
     // rich text
     this.handleKeyCommand = (command) => this._handleKeyCommand(command);
@@ -64,14 +64,14 @@ class Draft extends Component {
   }
 
   render() {
-    const {editorState} = this.state;
-    let className = 'RichEditor-editor';
+    const {editorState} = this.props;
+    /*let className = 'RichEditor-editor';
     const contentState = editorState.getCurrentContent();
     if (!contentState.hasText()) {
       if(contentState.getBlockMap().first().getType() !== 'unstyled') {
         className += ' RichEditor-hidePlaceholder';
       }
-    }
+    }*/
 
     return (
       <div className="RichEditor-root">
@@ -89,8 +89,8 @@ class Draft extends Component {
           <Editor
             blockStyleFn={getBlockStyle}
             customStyleMap={styleMap}
-            editorState={editorState} 
-            onChange={this.onChange}
+            editorState={this.props.editorState} 
+            onChange={this.props.onChange}
             onTab={this.onTab}
             ref="editor"
             spellCheck={true}

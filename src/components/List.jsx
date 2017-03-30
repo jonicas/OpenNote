@@ -13,7 +13,7 @@ class List extends Component {
         <div className="panel-body">
           <ul>
             {this.props.notes.map((note) =>
-              <div key={note.id}>
+              <div key={note.text}>
                 <ListItem 
                   editNote={this.props.onEdit}
                   deleteNote={this.props.onDelete}
@@ -25,7 +25,7 @@ class List extends Component {
           </ul>
         </div>
         <div className="panel-footer">
-          <button className="btn" onClick={this.props.onInclude}>New Note</button>
+          <button className="btn" onClick={this.props.onInclude}>+ ADD NOTE</button>
         </div>
       </div>
     );

@@ -3,46 +3,50 @@ import React, { Component } from 'react';
 import './App.css';
 import List from './components/List'
 import Draft from './components/Draft';
-import Navbar from './components/Navbar';
+//import Navbar from './components/Navbar';
+import { EditorState, ContentState } from 'draft-js';
 
 class App extends Component {
   constructor(props) {
     super(props);
+
     this.state = {
-      note: {id: 1, title: 'First Note', text: 'This is the first note text'},
-      notes: [
-        {id: 1, title: 'First Note', text: 'This is the first note text'},
-        {id: 2, title: 'Second Note', text: 'This is the second note text'},
-        {id: 3, title: 'Third Note', text: 'This is the third note text'},
-        {id: 4, title: 'Fourth Note', text: 'This is the fourth note text'}
-      ]
+      status: 'new',
+      editorState: EditorState.createEmpty(),
+      note: {},
+      notes: []
     }
 
-    this.addNote = this.addNote.bind(this);
+    this.onChange = (editorState) => { this.setState({editorState}) };
+
+    this.newNote = this.newNote.bind(this);
     this.editNote = this.editNote.bind(this);
     this.delNote = this.delNote.bind(this);
+    this.onSave = this.onSave.bind(this);
   }
 
-  onChange() {
-    console.log('Passando pelo OnChnage:', this.state);
-  }
+  newNote() {
+    const note = {
+      title: '',
+      text: '',
+      createdAt: new Date()
+    };
 
-  addNote() {
-    this.setState({
-      note: {id: 5, title: 'New Note', text: 'Just a new Note'}
-    });
-
-    console.log('new note added:', this.state);
+    const contentState = ContentState.createFromText('');
+    const editorState = EditorState.push(this.state.editorState, contentState);    
+    this.setState({note, editorState});
   }
 
   editNote(note) {
-    this.setState({note: note});
-    console.log('editing note:', note);
+    const contentState = ContentState.createFromText(note.text);
+    const editorState = EditorState.push(this.state.editorState, contentState, 'insert-characters');    
+    
+    this.setState({editorState, note, status: 'edit'});
   }
 
   delNote(note) {
     const notes = this.state.notes.filter((item) => {
-      return item.id !== note.id;
+      return item.text !== note.text;
     });
 
     this.setState({
@@ -50,27 +54,55 @@ class App extends Component {
     });
   }
 
+  onSave() {
+    const currentContent = this.state.editorState.getCurrentContent();
+
+    if (this.state.status === 'new') {
+      const note = {
+        createdAt: new Date(),
+        text:  currentContent.getPlainText(),
+        title: 'A New Note'
+      }
+
+      this.setState({
+        note: {},
+        notes: this.state.notes.concat(note),
+        editorState: EditorState.push(this.state.editorState, ContentState.createFromText(''))
+      });
+
+    } else {
+      this.setState({
+        notes: this.state.notes.map((note) => {
+          if (note.text === this.state.note.text) {
+            note.text = currentContent.getPlainText();
+          }
+        return note;
+        }),
+        note: {},
+        editorState: EditorState.push(this.state.editorState, ContentState.createFromText(''))
+      });
+    }
+  }
+
   render() {
     return (
       <div className="container">
-        <div className="columns">
-          <div className="column col-12">
-            <Navbar/>
-          </div>
-        </div>
         <div className="columns">
           <div className="column col-3 hide-md">
             <List 
               notes={this.state.notes} 
               onEdit={this.editNote}
               onDelete={this.delNote}
-              onInclude={this.addNote}
+              onInclude={this.newNote}
             />
           </div>
           <div className="column col-9 col-md-12">
-            <Draft note={this.state.note}/>
-            <button className="btn btn-primary">Save</button>
-            <button className="btn">Discart</button>
+            <Draft 
+              editorState={this.state.editorState}
+              onChange={this.onChange}
+            />
+            <button className="btn btn-primary" onClick={this.onSave}>SAVE</button>
+            <button className="btn">CANCEL</button>
           </div>
         </div>
       </div>
